@@ -4,6 +4,7 @@ import WeeklyCalendar from '../components/WeeklyCalendar.jsx';
 import CustomMealBuilder from '../components/CustomMealBuilder.jsx';
 import { calcWeeklyEmissions } from '../utils/calculations.js';
 import { fmtCO2 } from '../utils/formatters.js';
+import { MEALS } from '../data/meals.js';
 
 const STARTER_PLAN = [
   { id: 'default-1', day: 'Monday', mealType: 'breakfast', mealId: 'bacon_and_eggs', servings: 1 },
@@ -33,10 +34,10 @@ export default function MealPlanBuilder({ plan, setPlan, customMeals, setCustomM
   const navigate = useNavigate();
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
 
-  const mealRegistry = useMemo(() => ({ ...customMeals }), [customMeals]);
+  const mealRegistry = useMemo(() => ({ ...MEALS, ...customMeals }), [customMeals]);
 
   const weekStats = useMemo(
-    () => calcWeeklyEmissions(plan, { ...mealRegistry }),
+    () => calcWeeklyEmissions(plan, mealRegistry),
     [plan, mealRegistry]
   );
 

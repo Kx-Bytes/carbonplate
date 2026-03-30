@@ -13,12 +13,13 @@ import CategoryPieChart from '../components/CategoryPieChart.jsx';
 import MealComparisonTable from '../components/MealComparisonTable.jsx';
 import IngredientBreakdownTable from '../components/IngredientBreakdownTable.jsx';
 import ExportPanel from '../components/ExportPanel.jsx';
+import { MEALS } from '../data/meals.js';
 
 export default function ResultsDashboard({ plan, customMeals = {} }) {
   const navigate = useNavigate();
   const reportRef = useRef(null);
 
-  const mealRegistry = useMemo(() => ({ ...customMeals }), [customMeals]);
+  const mealRegistry = useMemo(() => ({ ...MEALS, ...customMeals }), [customMeals]);
 
   const { weekStats, pbStats, comparison, topMeals, topIngredients } = useMemo(() => {
     if (!plan.length) return {};
