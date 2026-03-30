@@ -1,18 +1,23 @@
-import { useState } from 'react';
-import { MEALS_BY_TYPE, MEAL_TYPES } from '../data/meals.js';
+import { useState, useMemo } from 'react';
+import { MEALS_BY_TYPE, MEAL_TYPES, MEALS } from '../data/meals.js';
 import { calcMealEmissions } from '../utils/calculations.js';
 import { fmtCO2 } from '../utils/formatters.js';
 import EmissionBadge from './EmissionBadge.jsx';
 
-export default function MealSelectorModal({ day, mealType, onSelect, onClose }) {
+export default function MealSelectorModal({ day, mealType, onSelect, onClose, customMeals = {} }) {
   const [activeTab, setActiveTab] = useState(mealType || MEAL_TYPES[0]);
   const [search, setSearch] = useState('');
 
-  const meals = (MEALS_BY_TYPE[activeTab] || []).filter(m => {
-    if (m.isPlantBased) return false; // only show "original" meals; PB equivalents auto-added
-    if (search) return m.name.toLowerCase().includes(search.toLowerCase());
-    return true;
-  });
+  const mealRegistry = useMemo(() => ({ ...MEALS, ...customMeals }), [customMeals]);
+
+  // Custom meals for the active tab
+  const customForTab = useMemo(
+    () => Object.values(customMeals).filter(m => m.mealType === activeTab),
+    [customMeals, activeTab]
+  );
+
+  const meals = [...(MEALS_BY_TYPE[activeTab] || []).filter(m => !m.isPlantBased), ...customForTab]
+    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
@@ -67,7 +72,9 @@ export default function MealSelectorModal({ day, mealType, onSelect, onClose }) 
             <p className="text-sm text-gray-400 text-center py-8">No meals found.</p>
           )}
           {meals.map(meal => {
-            const result = calcMealEmissions(meal.id);
+            const result = calcMealEmissions(meal.id, 1, mealRegistry);
+            const pbMeal = meal.plantBasedMealId ? mealRegistry[meal.plantBasedMealId] : null;
+            const pbResult = pbMeal ? calcMealEmissions(meal.plantBasedMealId, 1, mealRegistry) : null;
             return (
               <button
                 key={meal.id}
@@ -79,14 +86,14 @@ export default function MealSelectorModal({ day, mealType, onSelect, onClose }) 
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium text-sm text-gray-900 group-hover:text-green-800">
                       {meal.name}
+                      {meal.isCustom && <span className="ml-1 text-xs text-purple-500">(custom)</span>}
                     </span>
                     {result && <EmissionBadge kgCO2={result.totalKgCO2} />}
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5 truncate">{meal.description}</p>
-                  {meal.plantBasedMealId && (
+                  {pbMeal && pbResult && (
                     <p className="text-xs text-green-600 mt-1">
-                      🌿 Comparison: {MEALS_BY_TYPE[activeTab]?.find(m => m.id === meal.plantBasedMealId)?.name || '—'}
-                      {' '}({fmtCO2(calcMealEmissions(meal.plantBasedMealId)?.totalKgCO2 || 0)} CO₂eq)
+                      🌿 {pbMeal.name}: {fmtCO2(pbResult.totalKgCO2)} CO₂eq
                     </p>
                   )}
                 </div>

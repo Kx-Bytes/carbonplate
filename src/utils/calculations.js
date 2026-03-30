@@ -3,10 +3,11 @@ import { MEALS } from '../data/meals.js';
 
 /**
  * Calculate total kg CO₂eq for a single meal entry (with servings multiplier).
+ * Accepts an optional mealRegistry (merged built-in + custom meals).
  * Returns per-ingredient breakdown for transparency.
  */
-export function calcMealEmissions(mealId, servings = 1) {
-  const meal = MEALS[mealId];
+export function calcMealEmissions(mealId, servings = 1, mealRegistry = MEALS) {
+  const meal = mealRegistry[mealId];
   if (!meal) return null;
 
   const breakdown = meal.ingredients.map(({ ingredientId, grams, description }) => {
@@ -14,8 +15,9 @@ export function calcMealEmissions(mealId, servings = 1) {
     if (!ingredient) return null;
     const kgFood = (grams * servings) / 1000;
     const kgCO2 = kgFood * ingredient.emissionsPerKg;
-    const kgCO2Low = kgFood * ingredient.low;
-    const kgCO2High = kgFood * ingredient.high;
+    // Clark 2022 dataset doesn't have percentile ranges — use ±30% as conservative estimate
+    const kgCO2Low = kgCO2 * 0.7;
+    const kgCO2High = kgCO2 * 1.3;
     return {
       ingredientId,
       ingredientName: ingredient.name,
@@ -54,11 +56,12 @@ export function calcMealEmissions(mealId, servings = 1) {
 /**
  * Calculate full week emissions from the meal plan.
  * planEntries: Array of { day, mealType, mealId, servings }
+ * mealRegistry: merged built-in + custom meals object
  */
-export function calcWeeklyEmissions(planEntries) {
+export function calcWeeklyEmissions(planEntries, mealRegistry = MEALS) {
   const results = planEntries
     .map(entry => {
-      const mealResult = calcMealEmissions(entry.mealId, entry.servings || 1);
+      const mealResult = calcMealEmissions(entry.mealId, entry.servings || 1, mealRegistry);
       if (!mealResult) return null;
       return {
         ...mealResult,
@@ -115,15 +118,14 @@ export function calcWeeklyEmissions(planEntries) {
  * Replaces each meal with its plantBasedMealId equivalent (if one exists).
  * Returns the same structure as calcWeeklyEmissions.
  */
-export function calcPlantBasedEquivalent(planEntries) {
+export function calcPlantBasedEquivalent(planEntries, mealRegistry = MEALS) {
   const pbEntries = planEntries.map(entry => {
-    const meal = MEALS[entry.mealId];
+    const meal = mealRegistry[entry.mealId];
     if (!meal) return entry;
-    // If already plant-based or has a PB equivalent, use that; otherwise keep original
     const pbId = meal.isPlantBased ? entry.mealId : (meal.plantBasedMealId || entry.mealId);
     return { ...entry, mealId: pbId };
   });
-  return calcWeeklyEmissions(pbEntries);
+  return calcWeeklyEmissions(pbEntries, mealRegistry);
 }
 
 /**
@@ -146,8 +148,9 @@ export function buildComparison(currentStats, pbStats) {
 
   // Per-meal comparison
   const mealComparisons = currentStats.meals.map(currentMeal => {
-    const pbMealId = MEALS[currentMeal.mealId]?.plantBasedMealId;
-    const pbMeal = pbMealId ? calcMealEmissions(pbMealId, currentMeal.servings) : null;
+    const pbMealId = currentStats.mealRegistry?.[currentMeal.mealId]?.plantBasedMealId
+      || MEALS[currentMeal.mealId]?.plantBasedMealId;
+    const pbMeal = pbMealId ? calcMealEmissions(pbMealId, currentMeal.servings, currentStats.mealRegistry || MEALS) : null;
     return {
       day: currentMeal.day,
       mealType: currentMeal.mealType,

@@ -7,8 +7,8 @@ import ResultsDashboard from './pages/ResultsDashboard.jsx';
 import MethodologyPage from './pages/MethodologyPage.jsx';
 
 export default function App() {
-  // Global plan state — lifted here so it persists across page navigation
   const [plan, setPlan] = useState([]);
+  const [customMeals, setCustomMeals] = useState({});
 
   return (
     <BrowserRouter>
@@ -18,11 +18,18 @@ export default function App() {
           <Routes>
             <Route
               path="/"
-              element={<MealPlanBuilder plan={plan} setPlan={setPlan} />}
+              element={
+                <MealPlanBuilder
+                  plan={plan}
+                  setPlan={setPlan}
+                  customMeals={customMeals}
+                  setCustomMeals={setCustomMeals}
+                />
+              }
             />
             <Route
               path="/results"
-              element={<ResultsDashboard plan={plan} />}
+              element={<ResultsDashboard plan={plan} customMeals={customMeals} />}
             />
             <Route path="/methodology" element={<MethodologyPage />} />
           </Routes>

@@ -1,27 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import WeeklyCalendar from '../components/WeeklyCalendar.jsx';
+import CustomMealBuilder from '../components/CustomMealBuilder.jsx';
 import { calcWeeklyEmissions } from '../utils/calculations.js';
 import { fmtCO2 } from '../utils/formatters.js';
-import EmissionBadge from '../components/EmissionBadge.jsx';
 
-// Default starter plan so the app isn't empty on first load
 const STARTER_PLAN = [
   { id: 'default-1', day: 'Monday', mealType: 'breakfast', mealId: 'bacon_and_eggs', servings: 1 },
-  { id: 'default-2', day: 'Monday', mealType: 'lunch', mealId: 'beef_burger', servings: 1 },
+  { id: 'default-2', day: 'Monday', mealType: 'lunch', mealId: 'beef_burger_meal', servings: 1 },
   { id: 'default-3', day: 'Monday', mealType: 'dinner', mealId: 'steak_dinner', servings: 1 },
   { id: 'default-4', day: 'Tuesday', mealType: 'breakfast', mealId: 'cereal_with_milk', servings: 1 },
   { id: 'default-5', day: 'Tuesday', mealType: 'lunch', mealId: 'caesar_salad_chicken', servings: 1 },
-  { id: 'default-6', day: 'Tuesday', mealType: 'dinner', mealId: 'spaghetti_bolognese', servings: 1 },
+  { id: 'default-6', day: 'Tuesday', mealType: 'dinner', mealId: 'spaghetti_bolognese_meal', servings: 1 },
   { id: 'default-7', day: 'Wednesday', mealType: 'breakfast', mealId: 'yogurt_parfait', servings: 1 },
   { id: 'default-8', day: 'Wednesday', mealType: 'lunch', mealId: 'chicken_sandwich', servings: 1 },
-  { id: 'default-9', day: 'Wednesday', mealType: 'dinner', mealId: 'salmon_fillet', servings: 1 },
-  { id: 'default-10', day: 'Thursday', mealType: 'breakfast', mealId: 'avocado_toast', servings: 1 },
+  { id: 'default-9', day: 'Wednesday', mealType: 'dinner', mealId: 'salmon_dinner', servings: 1 },
+  { id: 'default-10', day: 'Thursday', mealType: 'breakfast', mealId: 'avocado_toast_egg', servings: 1 },
   { id: 'default-11', day: 'Thursday', mealType: 'lunch', mealId: 'tuna_pasta_salad', servings: 1 },
   { id: 'default-12', day: 'Thursday', mealType: 'dinner', mealId: 'chicken_stir_fry', servings: 1 },
   { id: 'default-13', day: 'Friday', mealType: 'breakfast', mealId: 'full_english', servings: 1 },
   { id: 'default-14', day: 'Friday', mealType: 'lunch', mealId: 'blt_sandwich', servings: 1 },
-  { id: 'default-15', day: 'Friday', mealType: 'dinner', mealId: 'lamb_curry', servings: 1 },
+  { id: 'default-15', day: 'Friday', mealType: 'dinner', mealId: 'lamb_chop_dinner', servings: 1 },
   { id: 'default-16', day: 'Saturday', mealType: 'lunch', mealId: 'beef_tacos', servings: 1 },
   { id: 'default-17', day: 'Saturday', mealType: 'dinner', mealId: 'roast_chicken_dinner', servings: 1 },
   { id: 'default-18', day: 'Sunday', mealType: 'breakfast', mealId: 'bacon_and_eggs', servings: 1 },
@@ -30,10 +29,16 @@ const STARTER_PLAN = [
   { id: 'default-21', day: 'Wednesday', mealType: 'snack', mealId: 'yogurt_snack', servings: 1 },
 ];
 
-export default function MealPlanBuilder({ plan, setPlan }) {
+export default function MealPlanBuilder({ plan, setPlan, customMeals, setCustomMeals }) {
   const navigate = useNavigate();
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
 
-  const weekStats = useMemo(() => calcWeeklyEmissions(plan), [plan]);
+  const mealRegistry = useMemo(() => ({ ...customMeals }), [customMeals]);
+
+  const weekStats = useMemo(
+    () => calcWeeklyEmissions(plan, { ...mealRegistry }),
+    [plan, mealRegistry]
+  );
 
   const handleAddMeal = ({ day, mealType, mealId }) => {
     const id = `entry-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -44,10 +49,17 @@ export default function MealPlanBuilder({ plan, setPlan }) {
     setPlan(prev => prev.filter(e => e.id !== entryId));
   };
 
-  const handleLoadStarter = () => {
-    setPlan(STARTER_PLAN);
+  const handleUpdateServings = (entryId, newServings) => {
+    setPlan(prev => prev.map(e => e.id === entryId ? { ...e, servings: newServings } : e));
   };
 
+  const handleSaveCustomMeal = (meal) => {
+    setCustomMeals(prev => ({ ...prev, [meal.id]: meal }));
+    setShowCustomBuilder(false);
+    // Immediately add to plan — user triggered this from the builder
+  };
+
+  const handleLoadStarter = () => setPlan(STARTER_PLAN);
   const handleClear = () => {
     if (window.confirm('Clear the entire meal plan?')) setPlan([]);
   };
@@ -104,11 +116,14 @@ export default function MealPlanBuilder({ plan, setPlan }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={handleLoadStarter} className="btn-secondary text-sm">
+            📋 Load Example Plan
+          </button>
           <button
-            onClick={handleLoadStarter}
+            onClick={() => setShowCustomBuilder(true)}
             className="btn-secondary text-sm"
           >
-            📋 Load Example Plan
+            ✏️ Build Custom Meal
           </button>
           {plan.length > 0 && (
             <>
@@ -118,10 +133,7 @@ export default function MealPlanBuilder({ plan, setPlan }) {
               >
                 Clear all
               </button>
-              <button
-                onClick={() => navigate('/results')}
-                className="btn-primary text-sm"
-              >
+              <button onClick={() => navigate('/results')} className="btn-primary text-sm">
                 See Full Analysis →
               </button>
             </>
@@ -156,16 +168,42 @@ export default function MealPlanBuilder({ plan, setPlan }) {
           plan={plan}
           onAddMeal={handleAddMeal}
           onRemoveMeal={handleRemoveMeal}
+          onUpdateServings={handleUpdateServings}
+          customMeals={customMeals}
         />
       </div>
 
+      {/* Custom meals list */}
+      {Object.keys(customMeals).length > 0 && (
+        <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+          <p className="text-xs font-semibold text-purple-700 mb-2">
+            ✏️ Your custom meals — add them to any slot in the calendar
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {Object.values(customMeals).map(m => (
+              <span key={m.id} className="text-xs bg-white border border-purple-200 rounded-full px-3 py-1 text-purple-700">
+                {m.emoji} {m.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Methodology note */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-        <strong>Data transparency:</strong> All emission factors are per-kg means from Poore &amp; Nemecek (2018),
-        covering farm-to-retail scope (land use change, farming, animal feed, processing, transport, packaging).
-        Values shown include the 5th–95th percentile uncertainty range.{' '}
+        <strong>Data transparency:</strong> Emission factors from Clark et al. (2022) via Our World in Data,
+        underpinned by Poore &amp; Nemecek (2018). Farm-to-retail scope.{' '}
+        Use the <strong>×</strong> stepper on each meal to adjust portion size.{' '}
         <a href="/methodology" className="underline font-medium">See full methodology →</a>
       </div>
+
+      {/* Custom meal builder modal */}
+      {showCustomBuilder && (
+        <CustomMealBuilder
+          onSave={handleSaveCustomMeal}
+          onClose={() => setShowCustomBuilder(false)}
+        />
+      )}
     </div>
   );
 }

@@ -14,14 +14,18 @@ import MealComparisonTable from '../components/MealComparisonTable.jsx';
 import IngredientBreakdownTable from '../components/IngredientBreakdownTable.jsx';
 import ExportPanel from '../components/ExportPanel.jsx';
 
-export default function ResultsDashboard({ plan }) {
+export default function ResultsDashboard({ plan, customMeals = {} }) {
   const navigate = useNavigate();
   const reportRef = useRef(null);
 
+  const mealRegistry = useMemo(() => ({ ...customMeals }), [customMeals]);
+
   const { weekStats, pbStats, comparison, topMeals, topIngredients } = useMemo(() => {
     if (!plan.length) return {};
-    const ws = calcWeeklyEmissions(plan);
-    const pb = calcPlantBasedEquivalent(plan);
+    const ws = calcWeeklyEmissions(plan, mealRegistry);
+    const pb = calcPlantBasedEquivalent(plan, mealRegistry);
+    // Attach registry for per-meal comparison lookup
+    ws.mealRegistry = mealRegistry;
     return {
       weekStats: ws,
       pbStats: pb,
@@ -29,7 +33,7 @@ export default function ResultsDashboard({ plan }) {
       topMeals: rankMealsByEmissions(ws),
       topIngredients: rankIngredientsByEmissions(ws),
     };
-  }, [plan]);
+  }, [plan, mealRegistry]);
 
   if (!plan.length) {
     return (
