@@ -183,6 +183,58 @@ src/
 
 ---
 
+## Thinking & Approach
+
+This section documents the reasoning behind the product, data, and technical decisions made throughout the build.
+
+### The Problem With Existing Tools
+
+Most carbon footprint calculators treat diet as a slider ("how often do you eat meat?") and return a single annual number. That number is too abstract to act on. The gap this tool addresses: **making the impact personal, specific, and comparable at the meal level**, so the information is useful both for individual reflection and for advocacy.
+
+The core insight from the literature is that food choice has more variance than almost any other personal carbon decision. A beef steak and a lentil soup can differ by 100× in emissions — but you can't see that from a generic "food" category. The tool had to expose that variance at the ingredient level to be honest and actionable.
+
+### The Plant-Based Comparison Framing
+
+The decision to show a plant-based *equivalent* rather than just a raw score was deliberate. Telling someone their diet emits 40 kg CO₂eq/week means little without a reference point. Telling them "your exact meals, if swapped for their closest plant-based equivalent, would emit 12 kg CO₂eq/week — saving 70%" is a concrete, actionable delta.
+
+The equivalents were chosen to be realistic — lentil bolognese instead of meat bolognese, black bean burger instead of beef burger — not aspirational (no one is replacing their chicken dinner with a theoretical "optimal protein source"). The goal is to model a practical diet shift, not an ideal one.
+
+### Data Strategy
+
+The first priority was using a real, citable dataset rather than hardcoded numbers. The criteria were:
+1. Publicly available in a machine-readable format
+2. Published in peer-reviewed literature
+3. Wide enough food coverage to be useful (>100 items)
+4. Farm-to-retail scope (not just farming)
+
+Poore & Nemecek (2018) is the most-cited source in food lifecycle assessment, but its data isn't available as a clean CSV — it lives in Science journal supplementary tables. Our World in Data maintains a clean, versioned CSV of Clark et al. (2022), which is itself derived from Poore & Nemecek and extends it. That CSV (211 items) was downloaded from the OWID GitHub repo and parsed with a Python script to generate `emissions.js` — so the data provenance is fully auditable from source file to rendered number.
+
+The ±30% uncertainty range is a compromise: Clark (2022) doesn't publish per-item percentile distributions. Poore & Nemecek's Fig. 1 shows that ±30% is roughly conservative for most categories (some like beef are much wider). It's disclosed clearly as an approximation.
+
+### Architectural Decisions
+
+**No backend.** All calculations are pure functions of static data. A backend would add infrastructure cost, latency, and a deployment surface for no functional gain. The CSV is versioned in the repo — the data is the backend.
+
+**Lifted state, not a store.** The plan and customMeals live in `App.jsx` and flow down as props. For an app of this size, a global store (Redux, Zustand) would be over-engineering. The component tree is shallow enough that prop drilling is clean.
+
+**mealRegistry pattern.** Both built-in meals and custom meals need to be looked up by ID throughout the calculation chain. Rather than threading two separate objects, all calculation functions accept a single `mealRegistry` object — built as `{ ...MEALS, ...customMeals }`. Custom meals shadow built-ins if IDs collide, and the pattern works identically whether the registry has 30 or 3000 entries.
+
+**CSV → JS at build time, not runtime.** The dataset is parsed once with a Python script and committed as `emissions.js`. Parsing CSV at runtime in the browser would be slower, harder to validate, and would require a fetch (which can fail). The generated JS file is deterministic and can be audited line by line.
+
+**Ingredient-level granularity.** Meals are defined as a list of `{ ingredientId, grams }` pairs. This means the carbon calculation is correct even as portion sizes change — it's not a fixed "this meal = X kg CO₂", it's computed fresh from ingredients × grams × servings × emission factor every render.
+
+### UX Decisions
+
+**Portion size stepper (±0.5).** Fixed-weight meals are a lie — a "chicken stir fry" for one person and for four people are not the same meal. The ±0.5 stepper was added because the emission calculation already supports it (it's just a multiplier), and hiding it from the user would make the numbers less accurate. Increments of 0.5 map naturally to "half a serving" / "double portion" without overwhelming precision.
+
+**Custom meal builder.** The pre-built meal templates cover common Western diet patterns but not everyone's eating habits. Rather than trying to enumerate every possible meal (impossible), the custom builder exposes the full 211-ingredient dataset directly — users define their meal as a list of ingredients and weights, and it flows into the same calculation pipeline as built-in meals. There's no special-casing needed.
+
+**Pre-loaded example plan.** An empty state is a dead end. The example plan (a typical high-meat Western diet) loads instantly and immediately shows a meaningful footprint number — this is the fastest path to the tool's core value proposition. Users can then edit from it rather than starting from scratch.
+
+**Methodology page.** Advocacy material needs to be citeable. A tool that shows numbers without explaining where they come from is useless for that purpose. The methodology page documents every calculation step, every data source, and every limitation — so a user who wants to cite a figure in a report can do so with confidence.
+
+---
+
 ## Design Decisions
 
 **Why Clark et al. (2022) via Our World in Data?** The CSV is publicly available on the OWID GitHub repo, allowing the emission factors to be parsed directly from source rather than hardcoded — making the data provenance fully transparent and auditable.
