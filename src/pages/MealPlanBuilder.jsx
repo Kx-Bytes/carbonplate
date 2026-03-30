@@ -76,7 +76,7 @@ export default function MealPlanBuilder({ plan, setPlan, customMeals, setCustomM
           Add your typical weekly meals. We&apos;ll calculate the carbon footprint of each
           ingredient using data from{' '}
           <a
-            href="https://www.science.org/doi/10.1126/science.aao0216"
+            href="https://ourworldindata.org/environmental-impacts-of-food"
             target="_blank"
             rel="noreferrer"
             className="text-green-600 underline"

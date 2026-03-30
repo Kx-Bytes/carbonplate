@@ -11,7 +11,7 @@
  *   Environmental%20impacts%20of%20food%20(Clark%20et%20al.%202022)
  *
  * Underpinned by: Poore, J. & Nemecek, T. (2018). Science, 360(6392), 987–992.
- * https://www.science.org/doi/10.1126/science.aao0216
+ * https://ourworldindata.org/environmental-impacts-of-food
  *
  * Units:
  *   emissionsPerKg   — kg CO₂eq per kg food (farm-to-retail)

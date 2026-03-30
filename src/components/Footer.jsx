@@ -10,7 +10,7 @@ export default function Footer() {
             <p className="text-xs text-gray-500 mt-1">
               Emissions data: Poore &amp; Nemecek (2018), <em>Science</em> 360(6392).{' '}
               <a
-                href="https://www.science.org/doi/10.1126/science.aao0216"
+                href="https://ourworldindata.org/environmental-impacts-of-food"
                 target="_blank"
                 rel="noreferrer"
                 className="underline hover:text-green-600"
