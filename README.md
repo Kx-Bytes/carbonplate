@@ -179,7 +179,3 @@ src/
 **Why these plant-based equivalents?** Each was chosen to be a realistic, commonly available, nutritionally comparable substitute — not an exotic replacement. The goal is to show what a practical diet shift looks like.
 
 ---
-
-## License
-
-MIT
