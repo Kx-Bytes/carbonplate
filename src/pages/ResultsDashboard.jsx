@@ -218,7 +218,7 @@ export default function ResultsDashboard({ plan, customMeals = {} }) {
         <strong>Primary data source:</strong> Poore, J. &amp; Nemecek, T. (2018).{' '}
         <em>Reducing food&apos;s environmental impacts through producers and consumers.</em>{' '}
         Science, 360(6392), 987–992.{' '}
-        <a href="https://doi.org/10.1126/science.aao0216" target="_blank" rel="noreferrer" className="underline text-blue-600">
+        <a href="https://www.science.org/doi/10.1126/science.aao0216" target="_blank" rel="noreferrer" className="underline text-blue-600">
           doi:10.1126/science.aao0216
         </a>
         . Analysis covers 40 food products, &gt;38,000 farms, 119 countries.{' '}

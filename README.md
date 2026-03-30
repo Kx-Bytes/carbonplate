@@ -2,7 +2,7 @@
 
 A web app that calculates the carbon footprint of your weekly meal plan, breaks it down by meal, ingredient, and production method, and compares it side-by-side with a plant-based equivalent.
 
-**Data is accurate enough to cite in advocacy material**, using [Clark et al. (2022)](https://ourworldindata.org/environmental-impacts-of-food) as the primary dataset — 211 food items with GHG, land use, and water data from Our World in Data, underpinned by [Poore & Nemecek (2018)](https://doi.org/10.1126/science.aao0216).
+**Data is accurate enough to cite in advocacy material**, using [Clark et al. (2022)](https://ourworldindata.org/environmental-impacts-of-food) as the primary dataset — 211 food items with GHG, land use, and water data from Our World in Data, underpinned by [Poore & Nemecek (2018)](https://www.science.org/doi/10.1126/science.aao0216).
 
 ---
 
@@ -53,7 +53,7 @@ The shareable output and transparent methodology make it useful beyond personal 
 
 ### Supporting Reference
 
-> **Poore, J. & Nemecek, T. (2018).** *Reducing food's environmental impacts through producers and consumers.* Science, 360(6392), 987–992. [doi:10.1126/science.aao0216](https://doi.org/10.1126/science.aao0216)
+> **Poore, J. & Nemecek, T. (2018).** *Reducing food's environmental impacts through producers and consumers.* Science, 360(6392), 987–992. [doi:10.1126/science.aao0216](https://www.science.org/doi/10.1126/science.aao0216)
 
 - 570 lifecycle assessment studies reviewed
 - >38,000 farms, 119 countries, 40 food products

@@ -5,7 +5,7 @@ const SOURCES = [
     key: 'poore2018',
     citation:
       'Poore, J. & Nemecek, T. (2018). Reducing food\'s environmental impacts through producers and consumers. Science, 360(6392), 987–992.',
-    doi: 'https://doi.org/10.1126/science.aao0216',
+    doi: 'https://www.science.org/doi/10.1126/science.aao0216',
     description:
       'The primary source for all animal-product, grain, legume, oil, and vegetable emission factors in this tool. The largest meta-analysis of food lifecycle assessments ever conducted: 570 studies, >38,000 farms, 119 countries, 40 food products. Data covers the full supply chain from land use change through farming, processing, transport, and packaging.',
     usedFor: 'Beef, lamb, pork, chicken, dairy, eggs, fish (farmed), shrimp, wheat, rice, pasta, oats, tomatoes, vegetables, legumes, nuts, oils, coffee, chocolate',
@@ -120,7 +120,7 @@ export default function MethodologyPage() {
           Poore, J. &amp; Nemecek, T. (2018). <em>Reducing food&apos;s environmental impacts through
           producers and consumers.</em> Science, 360(6392), 987–992.{' '}
           <a
-            href="https://doi.org/10.1126/science.aao0216"
+            href="https://www.science.org/doi/10.1126/science.aao0216"
             target="_blank"
             rel="noreferrer"
             className="underline"
